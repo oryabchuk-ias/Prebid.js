@@ -1,41 +1,41 @@
-import {submodule} from '../src/hook.js';
-import * as utils from '../src/utils.js';
-import {ajax} from '../src/ajax.js';
-import {getGlobal} from '../src/prebidGlobal.js';
-import {getAdUnitSizes} from '../libraries/sizeUtils/sizeUtils.js';
-import {getGptSlotInfoForAdUnitCode} from '../libraries/gptUtils/gptUtils.js';
+import { submodule } from "../src/hook.js";
+import * as utils from "../src/utils.js";
+import { ajax } from "../src/ajax.js";
+import { getGlobal } from "../src/prebidGlobal.js";
+import { getAdUnitSizes } from "../libraries/sizeUtils/sizeUtils.js";
+import { getGptSlotInfoForAdUnitCode } from "../libraries/gptUtils/gptUtils.js";
 
 /** @type {string} */
-const MODULE_NAME = 'realTimeData';
-const SUBMODULE_NAME = 'ias';
-const IAS_HOST = 'https://pixel.adsafeprotected.com/services/pub';
+const MODULE_NAME = "realTimeData";
+const SUBMODULE_NAME = "ias";
+const IAS_HOST = "https://pixel.adsafeprotected.com/services/pub";
 export let iasTargeting = {};
-const BRAND_SAFETY_OBJECT_FIELD_NAME = 'brandSafety';
-const FRAUD_FIELD_NAME = 'fr';
-const SLOTS_OBJECT_FIELD_NAME = 'slots';
-const CUSTOM_FIELD_NAME = 'custom';
-const IAS_KW = 'ias-kw';
+const BRAND_SAFETY_OBJECT_FIELD_NAME = "brandSafety";
+const FRAUD_FIELD_NAME = "fr";
+const SLOTS_OBJECT_FIELD_NAME = "slots";
+const CUSTOM_FIELD_NAME = "custom";
+const IAS_KW = "ias-kw";
 const IAS_KEY_MAPPINGS = {
-  adt: 'adt',
-  alc: 'alc',
-  dlm: 'dlm',
-  hat: 'hat',
-  off: 'off',
-  vio: 'vio',
-  drg: 'drg',
-  'ias-kw': 'ias-kw',
-  fr: 'fr',
-  vw: 'vw',
-  grm: 'grm',
-  pub: 'pub',
-  vw05: 'vw05',
-  vw10: 'vw10',
-  vw15: 'vw15',
-  vw30: 'vw30',
-  vw_vv: 'vw_vv',
-  grm_vv: 'grm_vv',
-  pub_vv: 'pub_vv',
-  id: 'id'
+  adt: "adt",
+  alc: "alc",
+  dlm: "dlm",
+  hat: "hat",
+  off: "off",
+  vio: "vio",
+  drg: "drg",
+  "ias-kw": "ias-kw",
+  fr: "fr",
+  vw: "vw",
+  grm: "grm",
+  pub: "pub",
+  vw05: "vw05",
+  vw10: "vw10",
+  vw15: "vw15",
+  vw30: "vw30",
+  vw_vv: "vw_vv",
+  grm_vv: "grm_vv",
+  pub_vv: "pub_vv",
+  id: "id",
 };
 
 /**
@@ -47,14 +47,14 @@ const IAS_KEY_MAPPINGS = {
 export function init(config, userConsent) {
   const params = config.params;
   if (!params || !params.pubId) {
-    utils.logError('missing pubId param for IAS provider');
+    utils.logError("missing pubId param for IAS provider");
     return false;
   }
-  if (params.hasOwnProperty('keyMappings')) {
+  if (params.hasOwnProperty("keyMappings")) {
     const keyMappings = params.keyMappings;
     for (let prop in keyMappings) {
       if (IAS_KEY_MAPPINGS.hasOwnProperty(prop)) {
-        IAS_KEY_MAPPINGS[prop] = keyMappings[prop]
+        IAS_KEY_MAPPINGS[prop] = keyMappings[prop];
       }
     }
   }
@@ -62,13 +62,13 @@ export function init(config, userConsent) {
 }
 
 function stringifySlotSizes(sizes) {
-  let result = '';
+  let result = "";
   if (utils.isArray(sizes)) {
     result = sizes.reduce((acc, size) => {
-      acc.push(size.join('.'));
+      acc.push(size.join("."));
       return acc;
     }, []);
-    result = '[' + result.join(',') + ']';
+    result = "[" + result.join(",") + "]";
   }
   return result;
 }
@@ -78,8 +78,14 @@ function getAdUnitPath(adSlot, bidRequest, adUnitPath) {
   if (!utils.isEmpty(adSlot)) {
     p = adSlot.gptSlot;
   } else {
-    if (!utils.isEmpty(adUnitPath) && adUnitPath.hasOwnProperty(bidRequest.code)) {
-      if (utils.isStr(adUnitPath[bidRequest.code]) && !utils.isEmpty(adUnitPath[bidRequest.code])) {
+    if (
+      !utils.isEmpty(adUnitPath) &&
+      adUnitPath.hasOwnProperty(bidRequest.code)
+    ) {
+      if (
+        utils.isStr(adUnitPath[bidRequest.code]) &&
+        !utils.isEmpty(adUnitPath[bidRequest.code])
+      ) {
         p = adUnitPath[bidRequest.code];
       }
     }
@@ -95,18 +101,21 @@ function stringifySlot(bidRequest, adUnitPath) {
   const p = getAdUnitPath(adSlot, bidRequest, adUnitPath);
   const slot = { id, ss, p };
   const keyValues = Object.keys(slot).map(function (key) {
-    return [key, slot[key]].join(':');
+    return [key, slot[key]].join(":");
   });
-  return '{' + keyValues.join(',') + '}';
+  return "{" + keyValues.join(",") + "}";
 }
 
 function stringifyWindowSize() {
   const { innerWidth, innerHeight } = utils.getWinDimensions();
-  return [innerWidth || -1, innerHeight || -1].join('.');
+  return [innerWidth || -1, innerHeight || -1].join(".");
 }
 
 function stringifyScreenSize() {
-  return [(window.screen && window.screen.width) || -1, (window.screen && window.screen.height) || -1].join('.');
+  return [
+    (window.screen && window.screen.width) || -1,
+    (window.screen && window.screen.height) || -1,
+  ].join(".");
 }
 
 function renameKeyValues(source) {
@@ -127,10 +136,16 @@ function formatTargetingData(adUnit) {
   if (iasTargeting[FRAUD_FIELD_NAME]) {
     result[FRAUD_FIELD_NAME] = iasTargeting[FRAUD_FIELD_NAME];
   }
-  if (iasTargeting[CUSTOM_FIELD_NAME] && IAS_KW in iasTargeting[CUSTOM_FIELD_NAME]) {
+  if (
+    iasTargeting[CUSTOM_FIELD_NAME] &&
+    IAS_KW in iasTargeting[CUSTOM_FIELD_NAME]
+  ) {
     result[IAS_KW] = iasTargeting[CUSTOM_FIELD_NAME][IAS_KW];
   }
-  if (iasTargeting[SLOTS_OBJECT_FIELD_NAME] && adUnit in iasTargeting[SLOTS_OBJECT_FIELD_NAME]) {
+  if (
+    iasTargeting[SLOTS_OBJECT_FIELD_NAME] &&
+    adUnit in iasTargeting[SLOTS_OBJECT_FIELD_NAME]
+  ) {
     utils.mergeDeep(result, iasTargeting[SLOTS_OBJECT_FIELD_NAME][adUnit]);
   }
   return renameKeyValues(result);
@@ -138,28 +153,40 @@ function formatTargetingData(adUnit) {
 
 function constructQueryString(anId, adUnits, pageUrl, adUnitPath) {
   let queries = [];
-  queries.push(['anId', anId]);
+  queries.push(["anId", anId]);
 
-  queries = queries.concat(adUnits.reduce(function (acc, request) {
-    acc.push(['slot', stringifySlot(request, adUnitPath)]);
-    return acc;
-  }, []));
+  queries = queries.concat(
+    adUnits.reduce(function (acc, request) {
+      acc.push(["slot", stringifySlot(request, adUnitPath)]);
+      return acc;
+    }, [])
+  );
 
-  queries.push(['wr', stringifyWindowSize()]);
-  queries.push(['sr', stringifyScreenSize()]);
-  queries.push(['url', encodeURIComponent(pageUrl)]);
+  queries.push(["wr", stringifyWindowSize()]);
+  queries.push(["sr", stringifyScreenSize()]);
+  queries.push(["url", encodeURIComponent(pageUrl)]);
 
-  return encodeURI(queries.map(qs => qs.join('=')).join('&'));
+  return encodeURI(queries.map((qs) => qs.join("=")).join("&"));
 }
 
 function parseResponse(result) {
-  let iasResponse = {};
   try {
-    iasResponse = JSON.parse(result);
+    mergeResponseData(JSON.parse(result));
   } catch (err) {
-    utils.logError('error', err);
+    utils.logError("error", err);
   }
+}
+
+function mergeResponseData(iasResponse) {
+  const prevSlots = iasTargeting[SLOTS_OBJECT_FIELD_NAME] || {};
+
   iasTargeting = iasResponse;
+
+  const slots = iasResponse[SLOTS_OBJECT_FIELD_NAME] || {};
+
+  Object.keys(prevSlots)
+    .filter((adUnit) => adUnit in slots === false)
+    .forEach((adUnit) => (slots[adUnit] = prevSlots[adUnit]));
 }
 
 function getTargetingData(adUnits, config, userConsent) {
@@ -171,9 +198,9 @@ function getTargetingData(adUnits, config, userConsent) {
       });
     }
   } catch (err) {
-    utils.logError('error', err);
+    utils.logError("error", err);
   }
-  utils.logInfo('IAS targeting', targeting);
+  utils.logInfo("IAS targeting", targeting);
   return targeting;
 }
 
@@ -184,7 +211,7 @@ function isValidHttpUrl(string) {
   } catch (_) {
     return false;
   }
-  return url.protocol === 'http:' || url.protocol === 'https:';
+  return url.protocol === "http:" || url.protocol === "https:";
 }
 
 export function getApiCallback() {
@@ -194,14 +221,14 @@ export function getApiCallback() {
         try {
           parseResponse(response);
         } catch (e) {
-          utils.logError('Unable to parse IAS response.', e);
+          utils.logError("Unable to parse IAS response.", e);
         }
       }
     },
     error: function () {
-      utils.logError('failed to retrieve IAS data');
-    }
-  }
+      utils.logError("failed to retrieve IAS data");
+    },
+  };
 }
 
 function getBidRequestData(reqBidsConfigObj, callback, config, userConsent) {
@@ -213,13 +240,10 @@ function getBidRequestData(reqBidsConfigObj, callback, config, userConsent) {
     pageUrl = document.location.href;
   }
   const queryString = constructQueryString(pubId, adUnits, pageUrl, adUnitPath);
-  ajax(
-    `${IAS_HOST}?${queryString}`,
-    getApiCallback(),
-    undefined,
-    { method: 'GET' }
-  );
-  callback()
+  ajax(`${IAS_HOST}?${queryString}`, getApiCallback(), undefined, {
+    method: "GET",
+  });
+  callback();
 }
 
 /** @type {RtdSubmodule} */
@@ -227,7 +251,7 @@ export const iasSubModule = {
   name: SUBMODULE_NAME,
   init: init,
   getTargetingData: getTargetingData,
-  getBidRequestData: getBidRequestData
+  getBidRequestData: getBidRequestData,
 };
 
 submodule(MODULE_NAME, iasSubModule);
